@@ -1,0 +1,25 @@
+{
+  "name": "vuecore",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EggEggLiu/vuecore.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EggEggLiu/vuecore/issues"
+  },
+  "homepage": "https://github.com/EggEggLiu/vuecore#readme",
+  "dependencies": {
+    "@types/jest": "^27.5.1",
+    "jest": "^28.1.0",
+    "typescript": "^4.7.2"
+  }
+}
