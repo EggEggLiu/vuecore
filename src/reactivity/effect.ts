@@ -1,19 +1,38 @@
 class ReactiveEffect {
     private _fn: any;
+    depsCollect = [];
+    stopped = false;
 
-    constructor(fn, public scheduler?) {
+    public scheduler: Function | undefined;
+    constructor(fn, scheduler?: Function) {
         this._fn = fn;
+        this.scheduler = scheduler;
     }
     run() {
         activeEffect = this;
         const res = this._fn();
         return res;
     }
+    stop() {
+        if (!this.stopped) {
+            cleanUp(this);
+            this.stopped = true;
+            if (this.onStop) {
+                this.onStop();
+            }
+        }
+    }
+}
 
+function cleanUp(effect) {
+    effect.depsCollect.forEach((deps: any) => {
+        deps.delete(effect);
+    })
 }
 
 const targetMap = new WeakMap();
 export function track(target, key) {
+    if (!activeEffect) return;
     let depsMap = targetMap.get(target);
     if (!depsMap) {
         depsMap = new Map();
@@ -27,6 +46,7 @@ export function track(target, key) {
     }
 
     deps.add(activeEffect);
+    activeEffect.depsCollect.push(deps);
 }
 
 export function trigger(target, key) {
@@ -48,5 +68,11 @@ export function effect(fn, options: any = {}) {
 
     _effect.run();
 
-    return _effect.run.bind(_effect);
+    const runner: any = _effect.run.bind(_effect);
+    runner.effect = _effect;
+    return runner;
+}
+
+export function stop(runner) {
+    runner.effect.stop();
 }
