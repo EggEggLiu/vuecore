@@ -1,7 +1,10 @@
+import { extend } from "../shared";
+
 class ReactiveEffect {
     private _fn: any;
     depsCollect = [];
     stopped = false;
+    onStop?: () => void;
 
     public scheduler: Function | undefined;
     constructor(fn, scheduler?: Function) {
@@ -65,7 +68,7 @@ export function trigger(target, key) {
 let activeEffect;
 export function effect(fn, options: any = {}) {
     const _effect = new ReactiveEffect(fn, options.scheduler);
-
+    extend(_effect, options);
     _effect.run();
 
     const runner: any = _effect.run.bind(_effect);
