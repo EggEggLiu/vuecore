@@ -1,4 +1,4 @@
-import { readonly } from "../reactive";
+import { isReadonly, readonly } from "../reactive";
 
 describe("readonly", () => {
     it("happy path", () => {
@@ -6,6 +6,8 @@ describe("readonly", () => {
         const original = { foo: 1, bar: { baz: 2 } };
         const wrapper = readonly(original);
         expect(wrapper).not.toBe(original);
+        expect(isReadonly(wrapper)).toBe(true);
+        expect(isReadonly(original)).toBe(false);
         expect(wrapper.foo).toBe(1);
     });
 
