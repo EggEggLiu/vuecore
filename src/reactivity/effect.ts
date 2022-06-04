@@ -1,9 +1,12 @@
 import { extend } from "../shared";
 
+
+let activeEffect;
+let shouldTrack;
 class ReactiveEffect {
     private _fn: any;
     depsCollect = [];
-    stopped = false;
+    active = true;
     onStop?: () => void;
 
     public scheduler: Function | undefined;
@@ -12,17 +15,23 @@ class ReactiveEffect {
         this.scheduler = scheduler;
     }
     run() {
+        if (!this.active) {
+            return this._fn();
+        }
+        
+        shouldTrack = true;
         activeEffect = this;
         const res = this._fn();
+        shouldTrack = false;
         return res;
     }
     stop() {
-        if (!this.stopped) {
+        if (this.active) {
             cleanUp(this);
-            this.stopped = true;
             if (this.onStop) {
                 this.onStop();
             }
+            this.active = false;
         }
     }
 }
@@ -31,11 +40,12 @@ function cleanUp(effect) {
     effect.depsCollect.forEach((deps: any) => {
         deps.delete(effect);
     })
+    effect.depsCollect.length = 0;
 }
 
 const targetMap = new WeakMap();
 export function track(target, key) {
-    if (!activeEffect) return;
+    if (!activeEffect || !shouldTrack) return;
     let depsMap = targetMap.get(target);
     if (!depsMap) {
         depsMap = new Map();
@@ -48,6 +58,7 @@ export function track(target, key) {
         depsMap.set(key, deps);
     }
 
+    if (deps.has(activeEffect)) return;
     deps.add(activeEffect);
     activeEffect.depsCollect.push(deps);
 }
@@ -65,7 +76,6 @@ export function trigger(target, key) {
     });
 }
 
-let activeEffect;
 export function effect(fn, options: any = {}) {
     const _effect = new ReactiveEffect(fn, options.scheduler);
     extend(_effect, options);
